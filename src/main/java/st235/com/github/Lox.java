@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public class Lox {
 
@@ -14,11 +15,21 @@ public class Lox {
     }
 
     private static void report(int line, String where, String message) {
-        System.err.printf("[line %d] Error %s: %s", line, where, message);
+        System.err.printf("[line %d] Error %s: %s\n", line, where, message);
     }
 
     private static void run(String rawScript) {
+        Scanner scanner = new Scanner(rawScript);
 
+        try {
+            List<Token> tokens = scanner.scan();
+
+            for (Token token: tokens) {
+                System.out.println(token);
+            }
+        } catch (Scanner.ScanningException scanningException) {
+            error(scanningException.line, scanningException.getMessage());
+        }
     }
 
     private static void runFromFile(String file) throws IOException {
