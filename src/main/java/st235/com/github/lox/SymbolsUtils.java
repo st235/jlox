@@ -1,4 +1,4 @@
-package st235.com.github;
+package st235.com.github.lox;
 
 public class SymbolsUtils {
 

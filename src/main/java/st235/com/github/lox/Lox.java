@@ -1,4 +1,4 @@
-package st235.com.github;
+package st235.com.github.lox;
 
 import java.io.BufferedReader;
 import java.io.IOException;
