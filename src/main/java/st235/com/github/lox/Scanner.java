@@ -67,7 +67,7 @@ public final class Scanner {
             case '<': addToken(stream.match('=') ? Token.Type.LESS_EQUAL : Token.Type.LESS); break;
             case '>': addToken(stream.match('=') ? Token.Type.GREATER_EQUAL : Token.Type.GREATER); break;
             case '!': addToken(stream.match('=') ? Token.Type.NOT_EQUAL : Token.Type.NOT); break;
-            case '=': addToken(stream.match('=') ? Token.Type.ASSIGNMENT : Token.Type.EQUAL); break;
+            case '=': addToken(stream.match('=') ? Token.Type.EQUAL_EQUAL : Token.Type.EQUAL); break;
             case '/':
                 if (stream.peek() == '/') {
                     while (stream.hasNext() && stream.peek() != '\n') {

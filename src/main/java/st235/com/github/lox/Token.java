@@ -11,7 +11,7 @@ public final class Token {
         GREATER, GREATER_EQUAL,
         LESS, LESS_EQUAL,
         NOT, NOT_EQUAL,
-        EQUAL, ASSIGNMENT,
+        EQUAL, EQUAL_EQUAL,
         SINGLE_LINE_COMMENT,
 
         // Literals

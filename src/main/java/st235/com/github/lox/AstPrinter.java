@@ -1,8 +1,20 @@
 package st235.com.github.lox;
 
+import java.io.PrintStream;
+
 public class AstPrinter implements Expression.Visitor<String> {
 
     private static final String SPACE = " ";
+
+    public void print(Expression expression, PrintStream printStream) {
+        if (expression == null) {
+            printStream.println("error: expression is null");
+            return;
+        }
+
+        String expressionAsString = expression.visit(this);
+        printStream.println(expressionAsString);
+    }
 
     @Override
     public String visitBinary(Expression.Binary node) {

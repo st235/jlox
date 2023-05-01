@@ -23,10 +23,12 @@ public class Lox {
 
         try {
             List<Token> tokens = scanner.scan();
+            Parser parser = new Parser(tokens);
 
-            for (Token token: tokens) {
-                System.out.println(token);
-            }
+            Expression abstractSyntaxTree = parser.parse();
+
+            AstPrinter astPrinter = new AstPrinter();
+            astPrinter.print(abstractSyntaxTree, System.out);
         } catch (Scanner.ScanningException scanningException) {
             error(scanningException.line, scanningException.getMessage());
         }
