@@ -27,8 +27,8 @@ public class Lox {
 
             Expression abstractSyntaxTree = parser.parse();
 
-            AstPrinter astPrinter = new AstPrinter();
-            astPrinter.print(abstractSyntaxTree, System.out);
+            Interpreter interpreter = new Interpreter();
+            interpreter.interpret(abstractSyntaxTree);
         } catch (Scanner.ScanningException scanningException) {
             error(scanningException.line, scanningException.getMessage());
         }
