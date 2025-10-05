@@ -1,4 +1,4 @@
-package st235.com.github.tools;
+package com.github.st235.tools;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

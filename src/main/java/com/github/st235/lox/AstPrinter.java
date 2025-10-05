@@ -1,4 +1,4 @@
-package st235.com.github.lox;
+package com.github.st235.lox;
 
 import java.io.PrintStream;
 
