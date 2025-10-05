@@ -1,5 +1,7 @@
 package com.github.st235.lox;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,15 +12,18 @@ import java.util.List;
 
 public class Lox {
 
-    private static void error(int line, String message) {
+    private static void error(int line,
+                              @NotNull String message) {
         report(line, "", message);
     }
 
-    private static void report(int line, String where, String message) {
+    private static void report(int line,
+                               @NotNull String where,
+                               @NotNull String message) {
         System.err.printf("[line %d] Error %s: %s\n", line, where, message);
     }
 
-    private static void run(String rawScript) {
+    private static void run(@NotNull String rawScript) {
         Scanner scanner = new Scanner(rawScript);
 
         try {
@@ -34,7 +39,7 @@ public class Lox {
         }
     }
 
-    private static void runFromFile(String file) throws IOException {
+    private static void runFromFile(@NotNull String file) throws IOException {
         byte[] bytes = Files.readAllBytes(Path.of(file));
         run(new String(bytes, Charset.defaultCharset()));
     }
@@ -57,14 +62,22 @@ public class Lox {
         }
     }
 
+    /**
+     * Lox entry point.
+     * Supports to modes: running a supplied file or evaluating commands in the interactive mode.
+     *
+     * @param args command line arguments, supplied by JVM.
+     * @throws IOException if the file is not found.
+     */
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
             System.out.println("Usage: jlox [script]");
             System.exit(64);
         } else if (args.length == 1) {
-            // script file
+            // Running a script file.
             runFromFile(args[0]);
         } else {
+            // Running interactive mode.
             runPrompt();
         }
     }
