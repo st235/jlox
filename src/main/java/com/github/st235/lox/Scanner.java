@@ -1,9 +1,9 @@
 package com.github.st235.lox;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 
 public final class Scanner {
 
@@ -29,20 +29,24 @@ public final class Scanner {
     }
 
     private final List<Token> tokens = new ArrayList<>();
+
+    @NotNull
     private final String script;
+    @NotNull
     private final ScannerStream stream;
 
     private int line = 1;
     private int start = 0;
 
-    public Scanner(String script) {
+    public Scanner(@NotNull String script) {
         this.script = script;
-        stream = new ScannerStream(script);
+        this.stream = new ScannerStream(script);
     }
 
+    @NotNull
     public List<Token> scan() {
         while (stream.hasNext()) {
-            start = stream.pointer;
+            start = stream.position;
             scanToken();
         }
 
@@ -86,12 +90,12 @@ public final class Scanner {
                 line += 1;
                 break;
             default:
-                if (SymbolsUtils.isDigit(c)) {
+                if (Symbols.isDigit(c)) {
                     number();
-                } else if (SymbolsUtils.isAlpha(c)) {
+                } else if (Symbols.isAlpha(c)) {
                     identifier();
                 } else {
-                    throw new ScanningException("Unknown identifier", line);
+                    Lox.error(line, "Unknown identifier.");
                 }
         }
     }
@@ -100,85 +104,75 @@ public final class Scanner {
         StringBuilder literal = new StringBuilder();
 
         if (!stream.hasNext()) {
-            throw new ScanningException("Cannot parse string", line);
+            Lox.error(line, "Cannot parse string");
         }
 
+        // Lox allows multi-line strings by design.
         while (stream.hasNext() && stream.peek() != '"') {
            char c = stream.next();
-
-           if (c == '\n') {
-               throw new ScanningException("No new lines in a string", line);
-           }
-
            literal.append(c);
         }
 
         if (!stream.hasNext()) {
-            throw new ScanningException("Unexpected EOF", line);
+            Lox.error(line, "Unexpected EOF, string should start and finish with closing brackets \".");
         }
 
-        // "
+        // Reading \".
         stream.next();
-        // let's trim " from literal
+        // Let's skip adding bracket to the literal.
         addToken(Token.Type.STRING, literal.toString());
     }
 
     private void identifier() {
-        while (stream.hasNext() && SymbolsUtils.isAlphanumeric(stream.peek())) {
+        while (stream.hasNext() && Symbols.isAlphanumeric(stream.peek())) {
             stream.next();
         }
 
-        String rawValue = script.substring(start, stream.pointer);
+        String rawValue = script.substring(start, stream.position);
         Token.Type keywordType = RESERVED_KEYWORDS.get(rawValue);
-        if (keywordType == null) {
-            addToken(Token.Type.IDENTIFIER);
-        } else {
-            addToken(keywordType);
-        }
+        addToken(Objects.requireNonNullElse(keywordType, Token.Type.IDENTIFIER));
     }
 
     private void number() {
-        while (stream.hasNext() && SymbolsUtils.isDigit(stream.peek())) {
+        while (stream.hasNext() && Symbols.isDigit(stream.peek())) {
             stream.next();
         }
 
-        if (stream.hasNext() && stream.peek() == '.' && SymbolsUtils.isDigit(stream.peekNext())) {
+        if (stream.hasNext() && stream.peek() == '.' && Symbols.isDigit(stream.peekNext())) {
+            // Skipping dot symbol.
             stream.next();
-            while (stream.hasNext() && SymbolsUtils.isDigit(stream.peek())) {
+            // Reading the rest of the number after a dot.
+            while (stream.hasNext() && Symbols.isDigit(stream.peek())) {
                 stream.next();
             }
         }
 
         addToken(Token.Type.NUMBER,
-                Double.parseDouble(script.substring(start, stream.pointer)));
+                Double.parseDouble(script.substring(start, stream.position)));
     }
 
-    private void addToken(Token.Type type) {
+    private void addToken(@NotNull Token.Type type) {
         addToken(type, null);
     }
 
-    private void addToken(Token.Type type, Object literal) {
-        String lexeme = script.substring(start, stream.pointer);
+    private void addToken(@NotNull Token.Type type, @Nullable Object literal) {
+        String lexeme = script.substring(start, stream.position);
         tokens.add(Token.from(type, lexeme, literal, line));
     }
 
     private static final class ScannerStream {
 
-        private final String script;
-        private int pointer;
+        private int position;
+        @NotNull private final String script;
 
-        public ScannerStream(String script) {
+        public ScannerStream(@NotNull String script) {
             this.script = script;
         }
 
         char next() {
             char next = peek();
-            pointer += 1;
+            position += 1;
             return next;
-        }
-
-        char peek() {
-            return script.charAt(pointer);
         }
 
         boolean match(char c) {
@@ -186,35 +180,24 @@ public final class Scanner {
                 return false;
             }
 
-            pointer += 1;
+            position += 1;
             return true;
         }
 
+        char peek() {
+            return script.charAt(position);
+        }
+
         char peekNext() {
-            if (pointer + 1 >= script.length()) {
+            if (position + 1 >= script.length()) {
                 return '\0';
             }
 
-            return script.charAt(pointer + 1);
+            return script.charAt(position + 1);
         }
 
         boolean hasNext() {
-            return pointer < script.length();
-        }
-    }
-
-    final class ScanningException extends RuntimeException {
-
-        final int line;
-
-        public ScanningException(String message, int line) {
-            super(message);
-            this.line = line;
-        }
-
-        public ScanningException(String message, int line, Throwable cause) {
-            super(message, cause);
-            this.line = line;
+            return position < script.length();
         }
     }
 }

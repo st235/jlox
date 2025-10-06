@@ -12,54 +12,20 @@ import java.util.List;
 
 public class Lox {
 
-    private static void error(int line,
-                              @NotNull String message) {
+    private static boolean shouldExitWithErrorCode = false;
+
+    static void error(int line,
+                      @NotNull String message) {
         report(line, "", message);
+        // Error has happened, we should signal that the process should be terminated
+        // with an exit code.
+        shouldExitWithErrorCode = true;
     }
 
     private static void report(int line,
                                @NotNull String where,
                                @NotNull String message) {
         System.err.printf("[line %d] Error %s: %s\n", line, where, message);
-    }
-
-    private static void run(@NotNull String rawScript) {
-        Scanner scanner = new Scanner(rawScript);
-
-        try {
-            List<Token> tokens = scanner.scan();
-            Parser parser = new Parser(tokens);
-
-            Expression abstractSyntaxTree = parser.parse();
-
-            Interpreter interpreter = new Interpreter();
-            interpreter.interpret(abstractSyntaxTree);
-        } catch (Scanner.ScanningException scanningException) {
-            error(scanningException.line, scanningException.getMessage());
-        }
-    }
-
-    private static void runFromFile(@NotNull String file) throws IOException {
-        byte[] bytes = Files.readAllBytes(Path.of(file));
-        run(new String(bytes, Charset.defaultCharset()));
-    }
-
-    /**
-     * REPL
-     * (print (eval (read)))
-     */
-    private static void runPrompt() throws IOException {
-        InputStreamReader inputStreamReader = new InputStreamReader(System.in);
-        BufferedReader reader = new BufferedReader(inputStreamReader);
-
-        while (true) {
-            System.out.print("> ");
-            String line = reader.readLine();
-            if (line == null) {
-                break;
-            }
-            run(line);
-        }
     }
 
     /**
@@ -80,5 +46,48 @@ public class Lox {
             // Running interactive mode.
             runPrompt();
         }
+    }
+
+    private static void runFromFile(@NotNull String file) throws IOException {
+        byte[] bytes = Files.readAllBytes(Path.of(file));
+        run(new String(bytes, Charset.defaultCharset()));
+
+        if (shouldExitWithErrorCode) {
+            // File run has finished, though there were errors
+            // while evaluating it. Finishing with an error code.
+            System.exit(65);
+        }
+    }
+
+    /**
+     * REPL
+     * (print (eval (read)))
+     */
+    private static void runPrompt() throws IOException {
+        InputStreamReader inputStreamReader = new InputStreamReader(System.in);
+        BufferedReader reader = new BufferedReader(inputStreamReader);
+
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            if (line == null) {
+                break;
+            }
+            run(line);
+            // Error may happen, though it does not mean we should terminate the session.
+            shouldExitWithErrorCode = false;
+        }
+    }
+
+    private static void run(@NotNull String rawScript) {
+        Scanner scanner = new Scanner(rawScript);
+
+        List<Token> tokens = scanner.scan();
+        Parser parser = new Parser(tokens);
+
+        Expression abstractSyntaxTree = parser.parse();
+
+        Interpreter interpreter = new Interpreter();
+        interpreter.interpret(abstractSyntaxTree);
     }
 }

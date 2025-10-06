@@ -99,7 +99,7 @@ public final class Parser {
         }
 
         if (match(Token.Type.NUMBER, Token.Type.STRING)) {
-            return new Expression.Literal(previous().literal);
+            return new Expression.Literal(previous().literal());
         }
 
         if (match(Token.Type.LEFT_BRACE)) {
@@ -108,7 +108,7 @@ public final class Parser {
             return expression;
         }
 
-        throw new ParsingException("Expression expected but " + peek().type + " found");
+        throw new ParsingException("Expression expected but " + peek().type() + " found");
     }
 
     private Token consume(Token.Type token, String message) {
@@ -136,11 +136,11 @@ public final class Parser {
             return false;
         }
 
-        return peek().type == type;
+        return peek().type() == type;
     }
 
     private boolean isAtEnd() {
-        return peek().type == Token.Type.EOF;
+        return peek().type() == Token.Type.EOF;
     }
 
     private Token peek() {

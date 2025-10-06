@@ -18,7 +18,7 @@ public class AstPrinter implements Expression.Visitor<String> {
 
     @Override
     public String visitBinary(Expression.Binary node) {
-        return prettyPrint(node.operator.lexeme, node.left, node.right);
+        return prettyPrint(node.operator.lexeme(), node.left, node.right);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class AstPrinter implements Expression.Visitor<String> {
 
     @Override
     public String visitUnary(Expression.Unary node) {
-        return prettyPrint(node.operator.lexeme, node.right);
+        return prettyPrint(node.operator.lexeme(), node.right);
     }
 
     private String prettyPrint(String expression, Expression... children) {

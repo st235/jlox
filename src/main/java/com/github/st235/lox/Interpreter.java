@@ -37,7 +37,7 @@ public class Interpreter implements Expression.Visitor<Object> {
         Object right = eval(node.right);
         Token operator = node.operator;
 
-        return switch (operator.type) {
+        return switch (operator.type()) {
             case NOT -> !isTruthy(right);
             case MINUS -> {
                 checkIfNumberOperand(operator, right);
@@ -53,7 +53,7 @@ public class Interpreter implements Expression.Visitor<Object> {
         Object right = eval(node.right);
         Token operator = node.operator;
 
-        return switch (operator.type) {
+        return switch (operator.type()) {
             case PLUS -> {
                 if (left instanceof Double && right instanceof Double) {
                     yield (double) left + (double) right;

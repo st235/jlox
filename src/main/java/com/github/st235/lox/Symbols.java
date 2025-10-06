@@ -1,8 +1,8 @@
 package com.github.st235.lox;
 
-public class SymbolsUtils {
+public final class Symbols {
 
-    private SymbolsUtils() {
+    private Symbols() {
         // Private on purpose.
     }
 
