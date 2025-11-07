@@ -7,13 +7,14 @@ import java.util.*;
 
 public final class Scanner {
 
+    @NotNull
     private static final Map<String, Token.Type> RESERVED_KEYWORDS = new HashMap<>();
 
     static {
         RESERVED_KEYWORDS.put("nil", Token.Type.NIL);
         RESERVED_KEYWORDS.put("if", Token.Type.IF);
         RESERVED_KEYWORDS.put("else", Token.Type.ELSE);
-        RESERVED_KEYWORDS.put("for", Token.Type.FALSE);
+        RESERVED_KEYWORDS.put("for", Token.Type.FOR);
         RESERVED_KEYWORDS.put("var", Token.Type.VAR);
         RESERVED_KEYWORDS.put("fun", Token.Type.FUNCTION);
         RESERVED_KEYWORDS.put("return", Token.Type.RETURN);

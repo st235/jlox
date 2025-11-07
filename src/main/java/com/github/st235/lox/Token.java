@@ -3,7 +3,7 @@ package com.github.st235.lox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record Token(Type type, @NotNull String lexeme, @Nullable Object literal, int line) {
+public record Token(@NotNull Type type, @NotNull String lexeme, @Nullable Object literal, int line) {
 
     public enum Type {
         // Single character operators.
@@ -15,7 +15,6 @@ public record Token(Type type, @NotNull String lexeme, @Nullable Object literal,
         LESS, LESS_EQUAL,
         NOT, NOT_EQUAL,
         EQUAL, EQUAL_EQUAL,
-        SINGLE_LINE_COMMENT,
 
         // Literals.
         IDENTIFIER, NUMBER, STRING,
@@ -28,11 +27,11 @@ public record Token(Type type, @NotNull String lexeme, @Nullable Object literal,
         EOF,
     }
 
-    public static Token from(Type type, int line) {
+    public static Token from(@NotNull Type type, int line) {
         return from(type, "", null, line);
     }
 
-    public static Token from(Type type, @NotNull String lexeme, @Nullable Object literal, int line) {
+    public static Token from(@NotNull Type type, @NotNull String lexeme, @Nullable Object literal, int line) {
         return new Token(type, lexeme, literal, line);
     }
 }
