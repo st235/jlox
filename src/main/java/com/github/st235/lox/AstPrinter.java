@@ -2,11 +2,11 @@ package com.github.st235.lox;
 
 import java.io.PrintStream;
 
-public class AstPrinter implements Expression.Visitor<String> {
+public class AstPrinter implements Expr.Visitor<String> {
 
     private static final String SPACE = " ";
 
-    public void print(Expression expression, PrintStream printStream) {
+    public void print(Expr expression, PrintStream printStream) {
         if (expression == null) {
             printStream.println("error: expression is null");
             return;
@@ -17,33 +17,33 @@ public class AstPrinter implements Expression.Visitor<String> {
     }
 
     @Override
-    public String visitBinary(Expression.Binary node) {
+    public String visitBinary(Expr.Binary node) {
         return prettyPrint(node.operator.lexeme(), node.left, node.right);
     }
 
     @Override
-    public String visitGrouping(Expression.Grouping node) {
+    public String visitGrouping(Expr.Grouping node) {
         return prettyPrint("grouping", node.expression);
     }
 
     @Override
-    public String visitLiteral(Expression.Literal node) {
+    public String visitLiteral(Expr.Literal node) {
         Object value = node.value == null ? "nil" : node.value;
         return String.valueOf(value);
     }
 
     @Override
-    public String visitUnary(Expression.Unary node) {
+    public String visitUnary(Expr.Unary node) {
         return prettyPrint(node.operator.lexeme(), node.right);
     }
 
-    private String prettyPrint(String expression, Expression... children) {
+    private String prettyPrint(String expression, Expr... children) {
         StringBuilder builder = new StringBuilder();
 
         builder.append("(")
                 .append(expression);
 
-        for (Expression child: children) {
+        for (Expr child: children) {
             builder
                     .append(SPACE)
                     .append(child.visit(this));
@@ -54,14 +54,14 @@ public class AstPrinter implements Expression.Visitor<String> {
     }
 
     public static void main(String[] args) {
-        Expression expression = new Expression.Binary(
-                new Expression.Unary(
+        Expr expression = new Expr.Binary(
+                new Expr.Unary(
                         new Token(Token.Type.MINUS, "-", null, 1),
-                        new Expression.Literal(123)
+                        new Expr.Literal(123)
                 ),
                 new Token(Token.Type.STAR, "*", null, 1),
-                new Expression.Grouping(
-                        new Expression.Literal(45.67)
+                new Expr.Grouping(
+                        new Expr.Literal(45.67)
                 )
         );
 

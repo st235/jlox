@@ -1,6 +1,6 @@
 package com.github.st235.lox;
 
-public class Interpreter implements Expression.Visitor<Object> {
+public class Interpreter implements Expr.Visitor<Object> {
 
     private static String stringify(Object value) {
         if (value == null) return "nil";
@@ -18,7 +18,7 @@ public class Interpreter implements Expression.Visitor<Object> {
         return String.valueOf(value);
     }
 
-    public void interpret(Expression expression) {
+    public void interpret(Expr expression) {
         try {
             Object result = eval(expression);
 
@@ -28,12 +28,12 @@ public class Interpreter implements Expression.Visitor<Object> {
         }
     }
 
-    private Object eval(Expression expression) {
+    private Object eval(Expr expression) {
         return expression.visit(this);
     }
 
     @Override
-    public Object visitUnary(Expression.Unary node) {
+    public Object visitUnary(Expr.Unary node) {
         Object right = eval(node.right);
         Token operator = node.operator;
 
@@ -48,7 +48,7 @@ public class Interpreter implements Expression.Visitor<Object> {
     }
 
     @Override
-    public Object visitBinary(Expression.Binary node) {
+    public Object visitBinary(Expr.Binary node) {
         Object left = eval(node.left);
         Object right = eval(node.right);
         Token operator = node.operator;
@@ -105,13 +105,13 @@ public class Interpreter implements Expression.Visitor<Object> {
     }
 
     @Override
-    public Object visitGrouping(Expression.Grouping node) {
-        Expression innerExpression = node.expression;
+    public Object visitGrouping(Expr.Grouping node) {
+        Expr innerExpression = node.expression;
         return eval(innerExpression);
     }
 
     @Override
-    public Object visitLiteral(Expression.Literal node) {
+    public Object visitLiteral(Expr.Literal node) {
         return node.value;
     }
 

@@ -1,25 +1,20 @@
 package com.github.st235.lox;
 
-public abstract class Expression {
+public abstract class Expr {
     public interface Visitor<R> {
-
         R visitBinary(Binary node);
-
         R visitGrouping(Grouping node);
-
         R visitLiteral(Literal node);
-
         R visitUnary(Unary node);
-
     }
 
-    public static class Binary extends Expression {
+    public static class Binary extends Expr {
 
-        final Expression left;
+        final Expr left;
         final Token operator;
-        final Expression right;
+        final Expr right;
 
-        Binary(Expression left,  Token operator,  Expression right) {
+        Binary(Expr left,  Token operator,  Expr right) {
             this.left = left;
             this.operator = operator;
             this.right = right;
@@ -32,11 +27,11 @@ public abstract class Expression {
 
     }
 
-    public static class Grouping extends Expression {
+    public static class Grouping extends Expr {
 
-        final Expression expression;
+        final Expr expression;
 
-        Grouping(Expression expression) {
+        Grouping(Expr expression) {
             this.expression = expression;
         }
 
@@ -47,7 +42,7 @@ public abstract class Expression {
 
     }
 
-    public static class Literal extends Expression {
+    public static class Literal extends Expr {
 
         final Object value;
 
@@ -62,12 +57,12 @@ public abstract class Expression {
 
     }
 
-    public static class Unary extends Expression {
+    public static class Unary extends Expr {
 
         final Token operator;
-        final Expression right;
+        final Expr right;
 
-        Unary(Token operator,  Expression right) {
+        Unary(Token operator,  Expr right) {
             this.operator = operator;
             this.right = right;
         }

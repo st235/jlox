@@ -13,7 +13,7 @@ public final class Parser {
         this.pointer = 0;
     }
 
-    public Expression parse() {
+    public Expr parse() {
         try {
             return expression();
         } catch (ParsingException exception) {
@@ -21,89 +21,89 @@ public final class Parser {
         }
     }
 
-    private Expression expression() {
+    private Expr expression() {
         return equality();
     }
 
-    private Expression equality() {
-        Expression lhs = comparison();
+    private Expr equality() {
+        Expr lhs = comparison();
 
         while (match(Token.Type.EQUAL_EQUAL, Token.Type.NOT_EQUAL)) {
             Token operand = previous();
-            Expression rhs = comparison();
+            Expr rhs = comparison();
 
-            lhs = new Expression.Binary(lhs, operand, rhs);
+            lhs = new Expr.Binary(lhs, operand, rhs);
         }
 
         return lhs;
     }
 
-    private Expression comparison() {
-        Expression lhs = term();
+    private Expr comparison() {
+        Expr lhs = term();
 
         while (match(Token.Type.LESS_EQUAL, Token.Type.LESS, Token.Type.GREATER_EQUAL, Token.Type.GREATER)) {
             Token operand = previous();
-            Expression rhs = term();
+            Expr rhs = term();
 
-            lhs = new Expression.Binary(lhs, operand, rhs);
+            lhs = new Expr.Binary(lhs, operand, rhs);
         }
 
         return lhs;
     }
 
-    private Expression term() {
-        Expression lhs = factor();
+    private Expr term() {
+        Expr lhs = factor();
 
         while (match(Token.Type.PLUS, Token.Type.MINUS)) {
             Token operand = previous();
-            Expression rhs = factor();
+            Expr rhs = factor();
 
-            lhs = new Expression.Binary(lhs, operand, rhs);
+            lhs = new Expr.Binary(lhs, operand, rhs);
         }
 
         return lhs;
     }
 
-    private Expression factor() {
-        Expression lhs = unary();
+    private Expr factor() {
+        Expr lhs = unary();
 
         while (match(Token.Type.STAR, Token.Type.SLASH)) {
             Token operand = previous();
-            Expression rhs = unary();
+            Expr rhs = unary();
 
-            lhs = new Expression.Binary(lhs, operand, rhs);
+            lhs = new Expr.Binary(lhs, operand, rhs);
         }
 
         return lhs;
     }
 
-    private Expression unary() {
+    private Expr unary() {
         if (match(Token.Type.MINUS, Token.Type.NOT)) {
-            return new Expression.Unary(previous(), unary());
+            return new Expr.Unary(previous(), unary());
         } else {
             return primary();
         }
     }
 
-    private Expression primary() {
+    private Expr primary() {
         if (match(Token.Type.FALSE)) {
-            return new Expression.Literal(false);
+            return new Expr.Literal(false);
         }
 
         if (match(Token.Type.TRUE)) {
-            return new Expression.Literal(true);
+            return new Expr.Literal(true);
         }
 
         if (match(Token.Type.NIL)) {
-            return new Expression.Literal(null);
+            return new Expr.Literal(null);
         }
 
         if (match(Token.Type.NUMBER, Token.Type.STRING)) {
-            return new Expression.Literal(previous().literal());
+            return new Expr.Literal(previous().literal());
         }
 
         if (match(Token.Type.LEFT_BRACE)) {
-            Expression expression = expression();
+            Expr expression = expression();
             consume(Token.Type.RIGHT_BRACE, "No matching )");
             return expression;
         }

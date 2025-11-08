@@ -1,5 +1,7 @@
 package com.github.st235.tools;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -8,44 +10,94 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class AstGenerator {
 
     private static final String DEFAULT_INDENT = "    ";
 
-    private final String rootInterface;
-    private final List<String> entriesDefinition;
+    @NotNull
+    private final String packageName;
+    @NotNull
+    private final List<String> imports;
 
-    public AstGenerator(String rootInterface, List<String> entriesDefinition) {
-        this.rootInterface = rootInterface.trim();
-        this.entriesDefinition = entriesDefinition;
+    public AstGenerator(@NotNull String packageName,
+                        @NotNull List<String> imports) {
+        this.packageName = packageName.trim();
+        this.imports = imports;
+        Collections.sort(this.imports);
     }
 
-    private void defineInnerClass(BufferedWriter writer,
-                                  String indent,
-                                  String type,
-                                  String[] dependencies) throws IOException {
+    public void define(@NotNull String rootInterface,
+                       @NotNull List<String> entriesDefinition,
+                       @NotNull BufferedWriter writer) throws IOException {
+        definePackage(writer);
+        defineImports(writer);
+
+        writer.write(String.format("public abstract class %s {", rootInterface));
+        writer.newLine();
+
+        defineVisitor(entriesDefinition, DEFAULT_INDENT, writer);
+
+        for (String entryDefinition: entriesDefinition) {
+            String[] parts = entryDefinition.split(":");
+            String type = parts[0].trim();
+            String[] entries = parts[1].trim().split(",");
+
+            defineInnerClass(rootInterface, type, entries, DEFAULT_INDENT, writer);
+            writer.newLine();
+        }
+
+        writer.write(DEFAULT_INDENT + "abstract <R> R visit(Visitor<R> visitor);");
+        writer.newLine();
+        writer.newLine();
+
+        writer.write("}");
+        writer.newLine();
+    }
+
+    private void definePackage(@NotNull BufferedWriter writer) throws IOException {
+        writer.write(String.format("package %s;",  packageName));
+        writer.newLine();
+        writer.newLine();
+    }
+
+    private void defineImports(@NotNull BufferedWriter writer) throws IOException {
+        if (!imports.isEmpty()) {
+            for (String imprt : imports) {
+                writer.write(String.format("import %s;", imprt));
+                writer.newLine();
+            }
+            writer.newLine();
+        }
+    }
+
+    private void defineInnerClass(@NotNull String rootInterface,
+                                  @NotNull String type,
+                                  @NotNull String[] entries,
+                                  @NotNull String indent,
+                                  @NotNull BufferedWriter writer) throws IOException {
         writer.write(indent + String.format("public static class %s extends %s {", type, rootInterface));
         writer.newLine();
         writer.newLine();
 
         String innerIndent = indent + indent;
 
-        for (String dependency: dependencies) {
-            writer.write(innerIndent + String.format("final %s;", dependency.trim()));
+        for (String entry: entries) {
+            writer.write(innerIndent + String.format("final %s;", entry.trim()));
             writer.newLine();
         }
 
         writer.newLine();
 
-        String formattedDependencies = String.join(", ", dependencies);
+        String formattedDependencies = String.join(", ", entries);
         writer.write(innerIndent + String.format("%s(%s) {", type, formattedDependencies));
         writer.newLine();
 
         String methodIndent = innerIndent + indent;
-        for (String dependency: dependencies) {
-            String argument = dependency.trim().split(" ")[1].trim();
+        for (String entry: entries) {
+            String argument = entry.trim().split(" ")[1].trim();
             writer.write(methodIndent + String.format("this.%s = %s;", argument, argument));
             writer.newLine();
         }
@@ -68,20 +120,17 @@ public class AstGenerator {
         writer.newLine();
     }
 
-    private void defineVisitor(BufferedWriter writer,
-                               String indent)  throws IOException {
-        String innerIndent = indent + indent;
-
+    private void defineVisitor(@NotNull List<String> entriesDefinition,
+                               @NotNull String indent,
+                               @NotNull BufferedWriter writer)  throws IOException {
         writer.write(indent + "public interface Visitor<R> {");
-        writer.newLine();
         writer.newLine();
 
         for (String entryDefinition: entriesDefinition) {
             String[] parts = entryDefinition.split(":");
             String type = parts[0].trim();
 
-            writer.write(innerIndent + String.format("R visit%s(%s node);", type, type));
-            writer.newLine();
+            writer.write(indent + indent + String.format("R visit%s(%s node);", type, type));
             writer.newLine();
         }
 
@@ -90,69 +139,37 @@ public class AstGenerator {
         writer.newLine();
     }
 
-    public void define(BufferedWriter writer)  throws IOException {
-        writer.write("package st235.com.github.lox;");
-        writer.newLine();
-        writer.newLine();
-
-        writer.write("import java.util.List;");
-        writer.newLine();
-        writer.newLine();
-
-        writer.write(String.format("public abstract class %s {", rootInterface));
-        writer.newLine();
-
-        defineVisitor(writer, DEFAULT_INDENT);
-
-        for (String entryDefinition: entriesDefinition) {
-            String[] parts = entryDefinition.split(":");
-            String type = parts[0].trim();
-            String[] entries = parts[1].trim().split(",");
-
-            defineInnerClass(writer, DEFAULT_INDENT, type, entries);
-            writer.newLine();
-        }
-
-        String innerIndent = DEFAULT_INDENT;
-
-        writer.write(innerIndent + "abstract <R> R visit(Visitor<R> visitor);");
-        writer.newLine();
-        writer.newLine();
-
-        writer.write("}");
-        writer.newLine();
-    }
-
-    public static void main(String[] args) {
+    public static void main(@NotNull String[] args) {
         if (args.length > 1) {
             System.err.println("Usage: generate_ast <output dir>");
             System.exit(64);
+            return;
         }
 
-        String rootInterface = "Expression";
-        AstGenerator generator = new AstGenerator(rootInterface, Arrays.asList(
-                "Binary: Expression left, Token operator, Expression right",
-                "Grouping: Expression expression",
-                "Literal: Object value",
-                "Unary: Token operator, Expression right"
-        ));
+        String rootInterface = "Expr";
+        AstGenerator generator = new AstGenerator("com.github.st235.lox",
+                Arrays.asList());
 
+        try(BufferedWriter writer = createWriter(args, rootInterface)) {
+            generator.define(rootInterface, Arrays.asList(
+                    "Binary   : Expr left, Token operator, Expr right",
+                    "Grouping : Expr expression",
+                    "Literal  : Object value",
+                    "Unary    : Token operator, Expr right"
+            ), writer);
+        } catch (IOException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    private static BufferedWriter createWriter(@NotNull String[] args,
+                                               @NotNull String rootInterface) throws IOException {
         if (args.length == 0) {
-            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8))) {
-                generator.define(writer);
-            } catch (IOException exception) {
-                throw new RuntimeException(exception);
-            }
+            return new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
         } else {
             String outputDir = args[0];
             Path outputPath = Paths.get(outputDir, String.format("%s.java", rootInterface));
-
-            try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
-                generator.define(writer);
-                System.out.println("File generated at: " + outputPath);
-            } catch (IOException exception) {
-                throw new RuntimeException(exception);
-            }
+            return Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8);
         }
     }
 }
