@@ -1,12 +1,8 @@
 package com.github.st235.lox;
 
 public abstract class Expr {
-    public interface Visitor<R> {
-        R visitBinary(Binary node);
-        R visitGrouping(Grouping node);
-        R visitLiteral(Literal node);
-        R visitUnary(Unary node);
-    }
+
+    abstract <R> R visit(Visitor<R> visitor);
 
     public static class Binary extends Expr {
 
@@ -74,6 +70,10 @@ public abstract class Expr {
 
     }
 
-    abstract <R> R visit(Visitor<R> visitor);
-
+    public interface Visitor<R> {
+        R visitBinary(Binary node);
+        R visitGrouping(Grouping node);
+        R visitLiteral(Literal node);
+        R visitUnary(Unary node);
+    }
 }

@@ -37,8 +37,11 @@ public class AstGenerator {
 
         writer.write(String.format("public abstract class %s {", rootInterface));
         writer.newLine();
+        writer.newLine();
 
-        defineVisitor(entriesDefinition, DEFAULT_INDENT, writer);
+        writer.write(DEFAULT_INDENT + "abstract <R> R visit(Visitor<R> visitor);");
+        writer.newLine();
+        writer.newLine();
 
         for (String entryDefinition: entriesDefinition) {
             String[] parts = entryDefinition.split(":");
@@ -49,9 +52,7 @@ public class AstGenerator {
             writer.newLine();
         }
 
-        writer.write(DEFAULT_INDENT + "abstract <R> R visit(Visitor<R> visitor);");
-        writer.newLine();
-        writer.newLine();
+        defineVisitor(entriesDefinition, DEFAULT_INDENT, writer);
 
         writer.write("}");
         writer.newLine();
