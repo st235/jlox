@@ -1,5 +1,9 @@
 package com.github.st235.lox;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public final class Parser {
@@ -13,12 +17,31 @@ public final class Parser {
         this.pointer = 0;
     }
 
-    public Expr parse() {
-        try {
-            return expression();
-        } catch (ParsingException exception) {
-            return null;
+    public List<Stmt> parse() {
+        List<Stmt> out = new ArrayList<>();
+
+        while (!isAtEnd()) {
+            out.add(statement());
         }
+
+        return out;
+    }
+
+    private Stmt statement() {
+        if (match(Token.Type.PRINT)) return printStatement();
+        return expressionStatement();
+    }
+
+    private Stmt printStatement() {
+        Expr expr = expression();
+        consume(Token.Type.SEMICOLON, "Expected ';' after value.");
+        return new Stmt.Print(expr);
+    }
+
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(Token.Type.SEMICOLON, "Expected ';' after expression.");
+        return new Stmt.Expression(expr);
     }
 
     private Expr expression() {

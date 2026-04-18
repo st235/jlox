@@ -2,7 +2,7 @@ package com.github.st235.lox;
 
 import java.io.PrintStream;
 
-public class AstPrinter implements Expr.Visitor<String> {
+public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
 
     private static final String SPACE = " ";
 
@@ -35,6 +35,18 @@ public class AstPrinter implements Expr.Visitor<String> {
     @Override
     public String visitUnary(Expr.Unary node) {
         return prettyPrint(node.operator.lexeme(), node.right);
+    }
+
+    @Override
+    public Void visitExpression(Stmt.Expression node) {
+        prettyPrint("expression", node.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrint(Stmt.Print node) {
+        prettyPrint("print", node.expression);
+        return null;
     }
 
     private String prettyPrint(String expression, Expr... children) {

@@ -1,6 +1,10 @@
 package com.github.st235.lox;
 
-public class Interpreter implements Expr.Visitor<Object> {
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private static String stringify(Object value) {
         if (value == null) return "nil";
@@ -18,13 +22,13 @@ public class Interpreter implements Expr.Visitor<Object> {
         return String.valueOf(value);
     }
 
-    public void interpret(Expr expression) {
+    public void interpret(@NotNull List<Stmt> statements) {
         try {
-            Object result = eval(expression);
-
-            System.out.println(stringify(result));
+            for (Stmt statement: statements) {
+                statement.visit(this);
+            }
         } catch (RuntimeError error) {
-
+            Lox.error(error.token.line(), error.getMessage());
         }
     }
 
@@ -113,6 +117,18 @@ public class Interpreter implements Expr.Visitor<Object> {
     @Override
     public Object visitLiteral(Expr.Literal node) {
         return node.value;
+    }
+
+    @Override
+    public Void visitExpression(Stmt.Expression node) {
+        eval(node.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrint(Stmt.Print node) {
+        System.out.println(stringify(eval(node.expression)));
+        return null;
     }
 
     private boolean isTruthy(Object object) {

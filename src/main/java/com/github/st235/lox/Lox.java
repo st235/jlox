@@ -85,9 +85,8 @@ public class Lox {
         List<Token> tokens = scanner.scan();
         Parser parser = new Parser(tokens);
 
-        Expr abstractSyntaxTree = parser.parse();
-
+        List<Stmt> statements = parser.parse();
         Interpreter interpreter = new Interpreter();
-        interpreter.interpret(abstractSyntaxTree);
+        interpreter.interpret(statements);
     }
 }
