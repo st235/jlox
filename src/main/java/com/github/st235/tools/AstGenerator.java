@@ -147,17 +147,30 @@ public class AstGenerator {
             return;
         }
 
-        String rootInterface = "Expr";
-        AstGenerator generator = new AstGenerator("com.github.st235.lox",
-                Arrays.asList());
+        AstGenerator generator = new AstGenerator("com.github.st235.lox", Collections.emptyList());
 
+        defineAst(args,
+                generator,
+                "Expr",
+                "Binary   : Expr left, Token operator, Expr right",
+                "Grouping : Expr expression",
+                "Literal  : Object value",
+                "Unary    : Token operator, Expr right");
+
+        defineAst(args,
+                generator,
+                "Stmt",
+                "Expression: Expr expression",
+                "Print: Expr expression");
+
+    }
+
+    private static void defineAst(@NotNull String[] args,
+                                  @NotNull AstGenerator generator,
+                                  @NotNull String rootInterface,
+                                  @NotNull String... entries) {
         try(BufferedWriter writer = createWriter(args, rootInterface)) {
-            generator.define(rootInterface, Arrays.asList(
-                    "Binary   : Expr left, Token operator, Expr right",
-                    "Grouping : Expr expression",
-                    "Literal  : Object value",
-                    "Unary    : Token operator, Expr right"
-            ), writer);
+            generator.define(rootInterface, Arrays.asList(entries), writer);
         } catch (IOException exception) {
             throw new RuntimeException(exception);
         }
@@ -166,7 +179,7 @@ public class AstGenerator {
     private static BufferedWriter createWriter(@NotNull String[] args,
                                                @NotNull String rootInterface) throws IOException {
         if (args.length == 0) {
-            return new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
+            return new NonClosingWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
         } else {
             String outputDir = args[0];
             Path outputPath = Paths.get(outputDir, String.format("%s.java", rootInterface));
