@@ -21,10 +21,32 @@ public final class Parser {
         List<Stmt> out = new ArrayList<>();
 
         while (!isAtEnd()) {
-            out.add(statement());
+            out.add(declaration());
         }
 
         return out;
+    }
+
+    private Stmt declaration() {
+        try {
+            if (match(Token.Type.VAR)) return varStatement();
+            return statement();
+        } catch (RuntimeError error) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Stmt varStatement() {
+        Token name = consume(Token.Type.IDENTIFIER, "Expected variable name.");
+
+        Expr expression = null;
+        if (match(Token.Type.EQUAL)) {
+            expression = expression();
+        }
+
+        consume(Token.Type.SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, expression);
     }
 
     private Stmt statement() {
@@ -131,7 +153,33 @@ public final class Parser {
             return expression;
         }
 
+        if (match(Token.Type.IDENTIFIER)) {
+            return new Expr.Variable(previous());
+        }
+
         throw new ParsingException("Expression expected but " + peek().type() + " found");
+    }
+
+    private void synchronize() {
+        advance();
+
+        while (!isAtEnd()) {
+            if (previous().type() == Token.Type.SEMICOLON) return;
+
+            switch (peek().type()) {
+                case CLASS:
+                case FUNCTION:
+                case VAR:
+                case FOR:
+                case IF:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                    return;
+            }
+
+            advance();
+        }
     }
 
     private Token consume(Token.Type token, String message) {

@@ -34,9 +34,27 @@ public abstract class Stmt {
 
     }
 
+    public static class Var extends Stmt {
+
+        final Token name;
+        final Expr initializer;
+
+        Var(Token name,  Expr initializer) {
+            this.name = name;
+            this.initializer = initializer;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitVar(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitExpression(Expression node);
         R visitPrint(Print node);
+        R visitVar(Var node);
     }
 
 }

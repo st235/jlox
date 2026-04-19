@@ -50,7 +50,7 @@ public class Lox {
 
     private static void runFromFile(@NotNull String file) throws IOException {
         byte[] bytes = Files.readAllBytes(Path.of(file));
-        run(new String(bytes, Charset.defaultCharset()));
+        run(new String(bytes, Charset.defaultCharset()), new Interpreter());
 
         if (shouldExitWithErrorCode) {
             // File run has finished, though there were errors
@@ -67,26 +67,28 @@ public class Lox {
         InputStreamReader inputStreamReader = new InputStreamReader(System.in);
         BufferedReader reader = new BufferedReader(inputStreamReader);
 
+        Interpreter interpreter = new Interpreter();
+
         while (true) {
             System.out.print("> ");
             String line = reader.readLine();
             if (line == null) {
                 break;
             }
-            run(line);
+            run(line, interpreter);
             // Error may happen, though it does not mean we should terminate the session.
             shouldExitWithErrorCode = false;
         }
     }
 
-    private static void run(@NotNull String rawScript) {
+    private static void run(@NotNull String rawScript,
+                            @NotNull Interpreter interpreter) {
         Scanner scanner = new Scanner(rawScript);
 
         List<Token> tokens = scanner.scan();
         Parser parser = new Parser(tokens);
 
         List<Stmt> statements = parser.parse();
-        Interpreter interpreter = new Interpreter();
         interpreter.interpret(statements);
     }
 }

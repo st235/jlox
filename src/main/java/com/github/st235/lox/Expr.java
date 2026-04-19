@@ -70,10 +70,27 @@ public abstract class Expr {
 
     }
 
+    public static class Variable extends Expr {
+
+        final Token name;
+
+        Variable(Token name) {
+            this.name = name;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitVariable(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitBinary(Binary node);
         R visitGrouping(Grouping node);
         R visitLiteral(Literal node);
         R visitUnary(Unary node);
+        R visitVariable(Variable node);
     }
+
 }

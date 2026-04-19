@@ -38,6 +38,11 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public String visitVariable(Expr.Variable node) {
+        return node.name.lexeme();
+    }
+
+    @Override
     public Void visitExpression(Stmt.Expression node) {
         prettyPrint("expression", node.expression);
         return null;
@@ -46,6 +51,12 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
     @Override
     public Void visitPrint(Stmt.Print node) {
         prettyPrint("print", node.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitVar(Stmt.Var node) {
+        prettyPrint("var", node.initializer);
         return null;
     }
 

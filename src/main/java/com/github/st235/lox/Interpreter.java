@@ -6,6 +6,9 @@ import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
+    @NotNull
+    private final Environment environment = new Environment();
+
     private static String stringify(Object value) {
         if (value == null) return "nil";
 
@@ -115,6 +118,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitVariable(Expr.Variable node) {
+        return environment.get(node.name);
+    }
+
+    @Override
     public Object visitLiteral(Expr.Literal node) {
         return node.value;
     }
@@ -128,6 +136,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visitPrint(Stmt.Print node) {
         System.out.println(stringify(eval(node.expression)));
+        return null;
+    }
+
+    @Override
+    public Void visitVar(Stmt.Var node) {
+        Object value = null;
+        if (node.initializer != null) {
+            value = eval(node.initializer);
+        }
+        environment.define(node.name.lexeme(), value);
         return null;
     }
 
