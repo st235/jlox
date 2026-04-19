@@ -85,12 +85,30 @@ public abstract class Expr {
 
     }
 
+    public static class Assign extends Expr {
+
+        final Token name;
+        final Expr expression;
+
+        Assign(Token name,  Expr expression) {
+            this.name = name;
+            this.expression = expression;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitAssign(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitBinary(Binary node);
         R visitGrouping(Grouping node);
         R visitLiteral(Literal node);
         R visitUnary(Unary node);
         R visitVariable(Variable node);
+        R visitAssign(Assign node);
     }
 
 }

@@ -67,7 +67,25 @@ public final class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return assignment();
+    }
+
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(Token.Type.EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            Lox.error(equals.line(), "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     private Expr equality() {

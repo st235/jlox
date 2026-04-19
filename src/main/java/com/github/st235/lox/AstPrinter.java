@@ -60,6 +60,12 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public String visitAssign(Expr.Assign node) {
+        prettyPrint("assignment", node.expression);
+        return null;
+    }
+
     private String prettyPrint(String expression, Expr... children) {
         StringBuilder builder = new StringBuilder();
 

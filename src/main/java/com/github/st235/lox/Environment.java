@@ -14,6 +14,15 @@ final class Environment {
         lookup.put(name, value);
     }
 
+    void assign(@NotNull Token name, @Nullable Object value) {
+        if (lookup.containsKey(name.lexeme())) {
+            lookup.put(name.lexeme(), value);
+            return;
+        }
+
+        throw new RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
+    }
+
     Object get(@NotNull Token name) {
         if (lookup.containsKey(name.lexeme())) {
             return lookup.get(name.lexeme());
