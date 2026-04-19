@@ -51,6 +51,7 @@ public final class Parser {
 
     private Stmt statement() {
         if (match(Token.Type.PRINT)) return printStatement();
+        if (match(Token.Type.LEFT_PARENTHESIS)) return new Stmt.Block(block());
         return expressionStatement();
     }
 
@@ -58,6 +59,17 @@ public final class Parser {
         Expr expr = expression();
         consume(Token.Type.SEMICOLON, "Expected ';' after value.");
         return new Stmt.Print(expr);
+    }
+
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(Token.Type.RIGHT_PARENTHESIS) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(Token.Type.RIGHT_PARENTHESIS, "Expect '} after block.");
+        return statements;
     }
 
     private Stmt expressionStatement() {

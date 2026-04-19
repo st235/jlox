@@ -8,7 +8,19 @@ import java.util.Map;
 
 final class Environment {
 
+    @NotNull
     private final Map<String, Object> lookup = new HashMap<>();
+
+    @Nullable
+    private final Environment parent;
+
+    Environment() {
+        this(null);
+    }
+
+    Environment(@Nullable Environment parent) {
+        this.parent = parent;
+    }
 
     void define(@NotNull String name, @Nullable Object value) {
         lookup.put(name, value);
@@ -26,6 +38,10 @@ final class Environment {
     Object get(@NotNull Token name) {
         if (lookup.containsKey(name.lexeme())) {
             return lookup.get(name.lexeme());
+        }
+
+        if (parent != null) {
+            return parent.get(name);
         }
 
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");

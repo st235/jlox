@@ -1,5 +1,7 @@
 package com.github.st235.lox;
 
+import java.util.List;
+
 public abstract class Stmt {
 
     abstract <R> R visit(Visitor<R> visitor);
@@ -51,10 +53,26 @@ public abstract class Stmt {
 
     }
 
+    public static class Block extends Stmt {
+
+        final List<Stmt> statements;
+
+        Block(List<Stmt> statements) {
+            this.statements = statements;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitBlock(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitExpression(Expression node);
         R visitPrint(Print node);
         R visitVar(Var node);
+        R visitBlock(Block node);
     }
 
 }

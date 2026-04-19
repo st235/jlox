@@ -66,6 +66,12 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitBlock(Stmt.Block node) {
+        prettyPrint("block");
+        return null;
+    }
+
     private String prettyPrint(String expression, Expr... children) {
         StringBuilder builder = new StringBuilder();
 

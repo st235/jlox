@@ -7,7 +7,7 @@ import java.util.List;
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @NotNull
-    private final Environment environment = new Environment();
+    private Environment environment = new Environment();
 
     private static String stringify(Object value) {
         if (value == null) return "nil";
@@ -154,6 +154,26 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = eval(node.expression);
         environment.assign(node.name, value);
         return null;
+    }
+
+    @Override
+    public Void visitBlock(Stmt.Block node) {
+        executeBlock(node.statements, new Environment(environment));
+        return null;
+    }
+
+    private void executeBlock(@NotNull List<Stmt> statements, @NotNull Environment currentEnvironment) {
+        Environment previous = environment;
+
+        try {
+            this.environment = currentEnvironment;
+
+            for (Stmt statement: statements) {
+                statement.visit(this);
+            }
+        } finally {
+            this.environment = previous;
+        }
     }
 
     private boolean isTruthy(Object object) {
