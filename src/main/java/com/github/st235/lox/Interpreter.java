@@ -2,9 +2,21 @@ package com.github.st235.lox;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.*;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+
+    @NotNull
+    private final PrintWriter outputWriter;
+
+    Interpreter() {
+        this(System.out);
+    }
+
+    Interpreter(@NotNull OutputStream outputStream) {
+        this.outputWriter = new PrintWriter(new OutputStreamWriter(outputStream));
+    }
 
     @NotNull
     private Environment environment = new Environment();
@@ -135,7 +147,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitPrint(Stmt.Print node) {
-        System.out.println(stringify(eval(node.expression)));
+        outputWriter.println(stringify(eval(node.expression)));
+        outputWriter.flush();
         return null;
     }
 

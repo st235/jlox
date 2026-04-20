@@ -1,0 +1,16 @@
+var global = "Hello global scope";
+print global;
+
+{
+    var global = "Hello local scope";
+    print global;
+
+    {
+        var global = "Hello nested local scope";
+        print global;
+    }
+
+    print global;
+}
+
+print global;
