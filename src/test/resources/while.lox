@@ -4,3 +4,18 @@ while (a < 5) {
     print a;
     a = a + 1;
 }
+
+var prev = 1;
+var current = 0;
+
+var i = 0;
+
+while (i < 5) {
+    var oldCurrent = current;
+    current = current + prev;
+    prev = oldCurrent;
+
+    i = i + 1;
+}
+
+print i + "th Fibonacci number is " + current;
