@@ -157,7 +157,8 @@ public class AstGenerator {
                 "Literal  : Object value",
                 "Unary    : Token operator, Expr right",
                 "Variable : Token name",
-                "Assign: Token name, Expr expression");
+                "Assign: Token name, Expr expression",
+                "Logical : Expr left, Token operator, Expr right");
 
         defineAst(args,
                 generator,

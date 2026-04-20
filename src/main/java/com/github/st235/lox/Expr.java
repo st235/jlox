@@ -102,6 +102,25 @@ public abstract class Expr {
 
     }
 
+    public static class Logical extends Expr {
+
+        final Expr left;
+        final Token operator;
+        final Expr right;
+
+        Logical(Expr left,  Token operator,  Expr right) {
+            this.left = left;
+            this.operator = operator;
+            this.right = right;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitLogical(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitBinary(Binary node);
         R visitGrouping(Grouping node);
@@ -109,6 +128,7 @@ public abstract class Expr {
         R visitUnary(Unary node);
         R visitVariable(Variable node);
         R visitAssign(Assign node);
+        R visitLogical(Logical node);
     }
 
 }

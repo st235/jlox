@@ -140,6 +140,23 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitLogical(Expr.Logical node) {
+        Object left = eval(node.left);
+
+        if (node.operator.type() == Token.Type.OR) {
+            if (isTruthy(left)) {
+                return left;
+            }
+        } else {
+            if (!isTruthy(left)) {
+                return left;
+            }
+        }
+
+        return eval(node.right);
+    }
+
+    @Override
     public Void visitExpression(Stmt.Expression node) {
         eval(node.expression);
         return null;

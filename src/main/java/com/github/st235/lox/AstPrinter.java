@@ -77,6 +77,11 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public String visitLogical(Expr.Logical node) {
+        return prettyPrint("logical " + node.operator.type().name(), node.left, node.right);
+    }
+
     private String prettyPrint(String expression, Expr... children) {
         StringBuilder builder = new StringBuilder();
 
