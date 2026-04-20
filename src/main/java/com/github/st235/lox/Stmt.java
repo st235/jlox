@@ -87,12 +87,30 @@ public abstract class Stmt {
 
     }
 
+    public static class While extends Stmt {
+
+        final Expr condition;
+        final Stmt body;
+
+        While(Expr condition, Stmt body) {
+            this.condition = condition;
+            this.body = body;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitWhile(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitExpression(Expression node);
         R visitPrint(Print node);
         R visitVar(Var node);
         R visitBlock(Block node);
         R visitIf(If node);
+        R visitWhile(While node);
     }
 
 }

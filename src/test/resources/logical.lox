@@ -1,0 +1,3 @@
+print "hi" or 5;
+print true and true and true and false;
+print false or 2;

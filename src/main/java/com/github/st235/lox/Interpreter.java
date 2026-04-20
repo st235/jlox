@@ -193,6 +193,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitWhile(Stmt.While node) {
+        while (isTruthy(eval(node.condition))) {
+            node.body.visit(this);
+        }
+        return null;
+    }
+
+    @Override
     public Void visitIf(Stmt.If node) {
         if (isTruthy(eval(node.condition))) {
             node.thenBranch.visit(this);

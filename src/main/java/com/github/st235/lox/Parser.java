@@ -53,7 +53,16 @@ public final class Parser {
         if (match(Token.Type.PRINT)) return printStatement();
         if (match(Token.Type.LEFT_PARENTHESIS)) return new Stmt.Block(block());
         if (match(Token.Type.IF)) return ifStatement();
+        if (match(Token.Type.WHILE)) return whileStatement();
         return expressionStatement();
+    }
+
+    private Stmt whileStatement() {
+        consume(Token.Type.LEFT_BRACE, "Expect '(' after while.");
+        Expr condition = expression();
+        consume(Token.Type.RIGHT_BRACE, "Expect ')' after condition.");
+        Stmt body = statement();
+        return new Stmt.While(condition, body);
     }
 
     private Stmt ifStatement() {

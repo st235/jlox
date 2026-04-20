@@ -82,6 +82,12 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
         return prettyPrint("logical " + node.operator.type().name(), node.left, node.right);
     }
 
+    @Override
+    public Void visitWhile(Stmt.While node) {
+        prettyPrint("while");
+        return null;
+    }
+
     private String prettyPrint(String expression, Expr... children) {
         StringBuilder builder = new StringBuilder();
 

@@ -32,6 +32,11 @@ final class Environment {
             return;
         }
 
+        if (parent != null) {
+            parent.assign(name, value);
+            return;
+        }
+
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
     }
 
