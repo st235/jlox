@@ -165,7 +165,8 @@ public class AstGenerator {
                 "Expression: Expr expression",
                 "Print: Expr expression",
                 "Var : Token name, Expr initializer",
-                "Block : List<Stmt> statements");
+                "Block : List<Stmt> statements",
+                "If : Expr condition, Stmt thenBranch, Stmt elseBranch");
 
     }
 
