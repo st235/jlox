@@ -54,7 +54,51 @@ public final class Parser {
         if (match(Token.Type.LEFT_PARENTHESIS)) return new Stmt.Block(block());
         if (match(Token.Type.IF)) return ifStatement();
         if (match(Token.Type.WHILE)) return whileStatement();
+        if (match(Token.Type.FOR)) return forStatement();
         return expressionStatement();
+    }
+
+    private Stmt forStatement() {
+        consume(Token.Type.LEFT_BRACE, "Expect '(' after for.");
+
+        Stmt initialiser;
+        if (match(Token.Type.SEMICOLON)) {
+            initialiser = null;
+        } else if (match(Token.Type.VAR)) {
+            initialiser = varStatement();
+        } else {
+            initialiser = expressionStatement();
+        }
+
+        Expr condition = null;
+        if (!check(Token.Type.SEMICOLON)) {
+            condition = expression();
+        }
+        consume(Token.Type.SEMICOLON, "Expect ';' after for loop condition.");
+
+        Expr increment = null;
+        if (!check(Token.Type.RIGHT_BRACE)) {
+            increment = expression();
+        }
+        consume(Token.Type.RIGHT_BRACE, "Expect ')' after for clauses.");
+
+        Stmt body = statement();
+
+        // Desugaring for loop into a while loop.
+        if (increment != null) {
+            body = new Stmt.Block(List.of(body, new Stmt.Expression(increment)));
+        }
+
+        if (condition == null) {
+            condition = new Expr.Literal(true);
+        }
+        body = new Stmt.While(condition, body);
+
+        if (initialiser != null) {
+            body = new Stmt.Block(List.of(initialiser, body));
+        }
+
+        return body;
     }
 
     private Stmt whileStatement() {

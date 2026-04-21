@@ -47,7 +47,8 @@ public class InterpreterTest {
                 new Arguments("scopes.lox", "scopes.out"),
                 new Arguments("if.lox", "if.out"),
                 new Arguments("while.lox", "while.out"),
-                new Arguments("logical.lox", "logical.out")
+                new Arguments("logical.lox", "logical.out"),
+                new Arguments("for.lox", "for.out")
         );
     }
 
