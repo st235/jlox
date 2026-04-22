@@ -3,6 +3,7 @@ package com.github.st235.lox;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
@@ -10,16 +11,23 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @NotNull
     private final PrintWriter outputWriter;
 
+    @NotNull
+    private Environment environment = new Environment();
+
     Interpreter() {
         this(System.out);
     }
 
     Interpreter(@NotNull OutputStream outputStream) {
         this.outputWriter = new PrintWriter(new OutputStreamWriter(outputStream));
-    }
 
-    @NotNull
-    private Environment environment = new Environment();
+        addFunction(new NativeFunction("clock", 0) {
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return System.currentTimeMillis() / 1000.0;
+            }
+        });
+    }
 
     private static String stringify(Object value) {
         if (value == null) return "nil";
@@ -35,6 +43,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         return String.valueOf(value);
+    }
+
+    void addFunction(@NotNull NativeFunction function) {
+        environment.define(function.name, function);
     }
 
     public void interpret(@NotNull List<Stmt> statements) {
@@ -215,7 +227,41 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
-    private void executeBlock(@NotNull List<Stmt> statements, @NotNull Environment currentEnvironment) {
+    @Override
+    public Object visitCall(Expr.Call node) {
+        Object callee = eval(node.callee);
+
+        List<Object> arguments = new ArrayList<>();
+        for (Expr expr: node.arguments) {
+            arguments.add(eval(expr));
+        }
+
+        if (!(callee instanceof LoxCallable function)) {
+            throw new RuntimeError(node.paren, "Can only call functions and classes.");
+        }
+
+        if (function.arity() != arguments.size()) {
+            throw new RuntimeError(node.paren,
+                    String.format("Expected %d arguments but got %d.", function.arity(), arguments.size()));
+        }
+
+        return function.call(this, arguments);
+    }
+
+    @Override
+    public Void visitFunction(Stmt.Function node) {
+        environment.define(node.name.lexeme(), new LoxFunction(node, environment));
+        return null;
+    }
+
+    @Override
+    public Void visitReturn(Stmt.Return node) {
+        Object value = null;
+        if (node.value != null) value = eval(node.value);
+        throw new Return(value);
+    }
+
+    void executeBlock(@NotNull List<Stmt> statements, @NotNull Environment currentEnvironment) {
         Environment previous = environment;
 
         try {

@@ -8,12 +8,38 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InterpreterTest {
+
+    private static final List<NativeFunction> NATIVE_FUNCTIONS = new ArrayList<>();
+
+    static {
+        NATIVE_FUNCTIONS.add(new NativeFunction("floor", 1) {
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Math.floor((double) arguments.get(0));
+            }
+        });
+
+        NATIVE_FUNCTIONS.add(new NativeFunction("mod", 2) {
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double)(((Double)arguments.get(0)).intValue() % ((Double)arguments.get(1)).intValue());
+            }
+        });
+
+        NATIVE_FUNCTIONS.add(new NativeFunction("div", 2) {
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return ((Double)arguments.get(0)).intValue() / ((Double)arguments.get(1)).intValue();
+            }
+        });
+    }
 
     @ParameterizedTest
     @MethodSource("provideScriptsForInterpreter")
@@ -31,6 +57,10 @@ public class InterpreterTest {
         List<Stmt> statements = parser.parse();
 
         Interpreter interpreter = new Interpreter(outStream);
+        for (NativeFunction function: NATIVE_FUNCTIONS) {
+            interpreter.addFunction(function);
+        }
+
         interpreter.interpret(statements);
 
         String loxOutput = outStream.toString(StandardCharsets.UTF_8);
@@ -48,7 +78,8 @@ public class InterpreterTest {
                 new Arguments("if.lox", "if.out"),
                 new Arguments("while.lox", "while.out"),
                 new Arguments("logical.lox", "logical.out"),
-                new Arguments("for.lox", "for.out")
+                new Arguments("for.lox", "for.out"),
+                new Arguments("functions.lox", "functions.out")
         );
     }
 

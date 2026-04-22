@@ -1,5 +1,7 @@
 package com.github.st235.lox;
 
+import java.util.List;
+
 public abstract class Expr {
 
     abstract <R> R visit(Visitor<R> visitor);
@@ -121,6 +123,25 @@ public abstract class Expr {
 
     }
 
+    public static class Call extends Expr {
+
+        final Expr callee;
+        final Token paren;
+        final List<Expr> arguments;
+
+        Call(Expr callee,  Token paren,  List<Expr> arguments) {
+            this.callee = callee;
+            this.paren = paren;
+            this.arguments = arguments;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitCall(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitBinary(Binary node);
         R visitGrouping(Grouping node);
@@ -129,6 +150,7 @@ public abstract class Expr {
         R visitVariable(Variable node);
         R visitAssign(Assign node);
         R visitLogical(Logical node);
+        R visitCall(Call node);
     }
 
 }

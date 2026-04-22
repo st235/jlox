@@ -1,0 +1,36 @@
+fun factorial(n) {
+    if (n <= 1) return 1;
+    if (n == 2) return 2;
+    return n * factorial(n - 1);
+}
+
+fun pow(v, n) {
+    if (n == 0) return 1;
+    if (n == 1) return v;
+    if (n == 2) return v * v;
+
+    var half = pow(v, floor(n / 2));
+    if (mod(n, 2) == 0) {
+        return half * half;
+    }
+
+    return v * half * half;
+}
+
+print factorial(5);
+print pow(2, 12);
+print pow(3, 17);
+
+// Ramanujan-Sato series factor: 2√2/99².
+var rsFactor = 0.000288585565223;
+
+fun ramanujanSatoSeries(upperK) {
+    var c = 0;
+    for (var k = 0; k < upperK; k = k + 1) {
+        c = c + (factorial(4 * k) / pow(factorial(k), 4) * (26390 * k + 1103) / pow(396, 4 * k));
+    }
+    return rsFactor * c;
+}
+
+// Pi.
+print 1 / ramanujanSatoSeries(5);

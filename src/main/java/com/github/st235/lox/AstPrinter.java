@@ -88,6 +88,23 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public String visitCall(Expr.Call node) {
+        return prettyPrint("function call", node.callee);
+    }
+
+    @Override
+    public Void visitFunction(Stmt.Function node) {
+        prettyPrint(node.name.lexeme());
+        return null;
+    }
+
+    @Override
+    public Void visitReturn(Stmt.Return node) {
+        prettyPrint("return", node.value);
+        return null;
+    }
+
     private String prettyPrint(String expression, Expr... children) {
         StringBuilder builder = new StringBuilder();
 

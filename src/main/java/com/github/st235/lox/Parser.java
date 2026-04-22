@@ -30,11 +30,34 @@ public final class Parser {
     private Stmt declaration() {
         try {
             if (match(Token.Type.VAR)) return varStatement();
+            if (match(Token.Type.FUNCTION)) return funStatement("function");
             return statement();
         } catch (RuntimeError error) {
             synchronize();
             return null;
         }
+    }
+
+    private Stmt funStatement(@NotNull String kind) {
+        Token name = consume(Token.Type.IDENTIFIER, String.format("Expect %s name.", kind));
+
+        consume(Token.Type.LEFT_BRACE,  String.format("Expect '(' after %s name.", kind));
+
+        List<Token> parameters = new ArrayList<>();
+        if (!check(Token.Type.RIGHT_BRACE)) {
+            do {
+                if (parameters.size() >= 255) {
+                    Lox.error(peek().line(), "Can't have more than 255 parameters.");
+                }
+                parameters.add(consume(Token.Type.IDENTIFIER, "Expect parameter name."));
+            } while (match(Token.Type.COMA));
+        }
+
+        consume(Token.Type.RIGHT_BRACE, "Expect ')' after parameters.");
+
+        consume(Token.Type.LEFT_PARENTHESIS, String.format("Expect '{' before %s body.", kind));
+        List<Stmt> body = block();
+        return new Stmt.Function(name, parameters, body);
     }
 
     private Stmt varStatement() {
@@ -55,7 +78,19 @@ public final class Parser {
         if (match(Token.Type.IF)) return ifStatement();
         if (match(Token.Type.WHILE)) return whileStatement();
         if (match(Token.Type.FOR)) return forStatement();
+        if (match(Token.Type.RETURN)) return returnStatement();
+
         return expressionStatement();
+    }
+
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr expr = null;
+        if (!check(Token.Type.SEMICOLON)) {
+            expr = expression();
+        }
+        consume(Token.Type.SEMICOLON, "Expect ';' after return value.");
+        return new Stmt.Return(keyword, expr);
     }
 
     private Stmt forStatement() {
@@ -248,8 +283,38 @@ public final class Parser {
         if (match(Token.Type.MINUS, Token.Type.NOT)) {
             return new Expr.Unary(previous(), unary());
         } else {
-            return primary();
+            return call();
         }
+    }
+
+    private Expr call() {
+        Expr expr = primary();
+
+        while (true) {
+            if (!match(Token.Type.LEFT_BRACE)) {
+                break;
+            }
+
+            expr = finishCall(expr);
+        }
+
+        return expr;
+    }
+
+    private Expr finishCall(@NotNull Expr callee) {
+        List<Expr> arguments = new ArrayList<>();
+
+        if (!check(Token.Type.RIGHT_BRACE)) {
+            do {
+                if (arguments.size() >= 255) {
+                    Lox.error(peek().line(), "Can't have more than 255 arguments.");
+                }
+                arguments.add(expression());
+            } while (match(Token.Type.COMA));
+        }
+
+        Token paren = consume(Token.Type.RIGHT_BRACE, "Expect ')' after arguments.");
+        return new Expr.Call(callee, paren, arguments);
     }
 
     private Expr primary() {

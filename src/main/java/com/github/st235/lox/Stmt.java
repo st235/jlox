@@ -104,6 +104,42 @@ public abstract class Stmt {
 
     }
 
+    public static class Function extends Stmt {
+
+        final Token name;
+        final List<Token> params;
+        final List<Stmt> body;
+
+        Function(Token name,  List<Token> params,  List<Stmt> body) {
+            this.name = name;
+            this.params = params;
+            this.body = body;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitFunction(this);
+        }
+
+    }
+
+    public static class Return extends Stmt {
+
+        final Token keyword;
+        final Expr value;
+
+        Return(Token keyword,  Expr value) {
+            this.keyword = keyword;
+            this.value = value;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitReturn(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitExpression(Expression node);
         R visitPrint(Print node);
@@ -111,6 +147,8 @@ public abstract class Stmt {
         R visitBlock(Block node);
         R visitIf(If node);
         R visitWhile(While node);
+        R visitFunction(Function node);
+        R visitReturn(Return node);
     }
 
 }
