@@ -2,9 +2,13 @@ package com.github.st235.lox;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -12,7 +16,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private final PrintWriter outputWriter;
 
     @NotNull
-    private Environment environment = new Environment();
+    private final Environment global = new Environment();
+
+    @NotNull
+    private Environment environment = global;
+
+    @NotNull
+    private Map<Expr, Integer> localsDepthLookup = new HashMap<>();
 
     Interpreter() {
         this(System.out);
@@ -46,7 +56,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     void addFunction(@NotNull NativeFunction function) {
-        environment.define(function.name, function);
+        global.define(function.name, function);
+    }
+
+    void resolve(@NotNull Expr expression, int depth) {
+        localsDepthLookup.put(expression, depth);
     }
 
     public void interpret(@NotNull List<Stmt> statements) {
@@ -143,7 +157,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitVariable(Expr.Variable node) {
-        return environment.get(node.name);
+        return lookupVariable(node);
+    }
+
+    private Object lookupVariable(@NotNull Expr.Variable expression) {
+        Integer localDepth = localsDepthLookup.get(expression);
+        if (localDepth == null) {
+            return global.get(expression.name);
+        }
+        return environment.getAt(localDepth, expression.name);
     }
 
     @Override
@@ -194,8 +216,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitAssign(Expr.Assign node) {
         Object value = eval(node.expression);
-        environment.assign(node.name, value);
-        return null;
+
+        Integer localDepth = localsDepthLookup.get(node);
+        if (localDepth == null) {
+            global.assign(node.name, value);
+        } else {
+            environment.assignAt(localDepth, node.name, value);
+        }
+
+        return value;
     }
 
     @Override

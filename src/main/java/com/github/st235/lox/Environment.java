@@ -40,6 +40,11 @@ final class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
     }
 
+    void assignAt(int depth, @NotNull Token name, @Nullable Object value) {
+        Map<String, Object> lookup = findAt(depth);
+        lookup.put(name.lexeme(), value);
+    }
+
     Object get(@NotNull Token name) {
         if (lookup.containsKey(name.lexeme())) {
             return lookup.get(name.lexeme());
@@ -50,6 +55,20 @@ final class Environment {
         }
 
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
+    }
+
+    Object getAt(int depth, @NotNull Token name) {
+        Map<String, Object> lookup = findAt(depth);
+        return lookup.get(name.lexeme());
+    }
+
+    @NotNull
+    private Map<String, Object> findAt(int depth) {
+        Environment environment = this;
+        for (int i = 0; i < depth; i++) {
+            environment = environment.parent;
+        }
+        return environment.lookup;
     }
 
 }

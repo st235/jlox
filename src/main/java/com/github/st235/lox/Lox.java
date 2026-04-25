@@ -87,8 +87,21 @@ public class Lox {
 
         List<Token> tokens = scanner.scan();
         Parser parser = new Parser(tokens);
-
         List<Stmt> statements = parser.parse();
+
+        if (shouldExitWithErrorCode) {
+            System.exit(65);
+            return;
+        }
+
+        Resolver resolver = new Resolver(interpreter);
+
+        if (shouldExitWithErrorCode) {
+            System.exit(65);
+            return;
+        }
+
+        resolver.resolve(statements);
         interpreter.interpret(statements);
     }
 }

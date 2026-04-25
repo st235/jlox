@@ -57,10 +57,13 @@ public class InterpreterTest {
         List<Stmt> statements = parser.parse();
 
         Interpreter interpreter = new Interpreter(outStream);
+        Resolver resolver = new Resolver(interpreter);
+
         for (NativeFunction function: NATIVE_FUNCTIONS) {
             interpreter.addFunction(function);
         }
 
+        resolver.resolve(statements);
         interpreter.interpret(statements);
 
         String loxOutput = outStream.toString(StandardCharsets.UTF_8);
@@ -79,7 +82,8 @@ public class InterpreterTest {
                 new Arguments("while.lox", "while.out"),
                 new Arguments("logical.lox", "logical.out"),
                 new Arguments("for.lox", "for.out"),
-                new Arguments("functions.lox", "functions.out")
+                new Arguments("functions.lox", "functions.out"),
+                new Arguments("closures.lox", "closures.out")
         );
     }
 
