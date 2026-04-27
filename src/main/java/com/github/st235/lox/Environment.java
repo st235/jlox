@@ -57,9 +57,9 @@ final class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
     }
 
-    Object getAt(int depth, @NotNull Token name) {
+    Object getAt(int depth, @NotNull String name) {
         Map<String, Object> lookup = findAt(depth);
-        return lookup.get(name.lexeme());
+        return lookup.get(name);
     }
 
     @NotNull

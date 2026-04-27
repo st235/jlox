@@ -10,8 +10,15 @@ import java.util.Stack;
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private enum FunctionType {
-        FUNCTION,
         NONE,
+        FUNCTION,
+        INITIALISER,
+        METHOD,
+    }
+
+    private enum ClassType {
+        NONE,
+        CLASS,
     }
 
     @NotNull
@@ -22,6 +29,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @NotNull
     private FunctionType functionType = FunctionType.NONE;
+
+    private ClassType classType = ClassType.NONE;
 
     public Resolver(@NotNull Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -138,6 +147,19 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitGet(Expr.Get node) {
+        resolve(node.object);
+        return null;
+    }
+
+    @Override
+    public Void visitSet(Expr.Set node) {
+        resolve(node.object);
+        resolve(node.value);
+        return null;
+    }
+
+    @Override
     public Void visitExpression(Stmt.Expression node) {
         resolve(node.expression);
         return null;
@@ -189,14 +211,15 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         declare(node.name);
         define(node.name);
 
-        resolveFunction(node);
+        resolveFunction(node, FunctionType.FUNCTION);
 
         return null;
     }
 
-    private void resolveFunction(@NotNull Stmt.Function function) {
+    private void resolveFunction(@NotNull Stmt.Function function,
+                                 @NotNull FunctionType newFunctionType) {
         FunctionType oldFunctionType = functionType;
-        functionType = FunctionType.FUNCTION;
+        functionType = newFunctionType;
         beginScope();
 
         for (Token parameter: function.params) {
@@ -217,7 +240,49 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             return null;
         }
 
-        resolve(node.value);
+        if (node.value != null) {
+            if (functionType == FunctionType.INITIALISER) {
+                Lox.error(node.keyword.line(), "Can't return a value from an initialiser.");
+            }
+            resolve(node.value);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitClass(Stmt.Class node) {
+        ClassType oldClassType = classType;
+        classType = ClassType.CLASS;
+
+        declare(node.name);
+        define(node.name);
+
+        beginScope();
+        scopes.peek().put("this", true);
+
+        for (Stmt.Function method: node.methods) {
+            FunctionType declaration = FunctionType.METHOD;
+            if (method.name.lexeme().equals("init")) {
+                declaration = FunctionType.INITIALISER;
+            }
+            resolveFunction(method, declaration);
+        }
+
+        endScope();
+
+        classType = oldClassType;
+
+        return null;
+    }
+
+    @Override
+    public Void visitThis(Expr.This node) {
+        if (classType != ClassType.CLASS) {
+            Lox.error(node.keyword.line(), "Cannot use 'this' outside of a class.");
+            return null;
+        }
+
+        resolveLocal(node, node.keyword);
         return null;
     }
 }

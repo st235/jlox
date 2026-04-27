@@ -11,9 +11,19 @@ class LoxFunction implements LoxCallable {
     @NotNull
     private final Environment closure;
 
-    LoxFunction(@NotNull Stmt.Function declaration, @NotNull Environment closure) {
+    private boolean isInitialiser;
+
+    public LoxFunction(@NotNull Stmt.Function declaration, @NotNull Environment closure, boolean isInitialiser) {
         this.declaration = declaration;
         this.closure = closure;
+        this.isInitialiser = isInitialiser;
+    }
+
+    @NotNull
+    LoxFunction bind(@NotNull LoxInstance instance) {
+        Environment environment = new Environment(closure);
+        environment.define("this", instance);
+        return new LoxFunction(declaration, environment, isInitialiser);
     }
 
     @Override
@@ -33,8 +43,16 @@ class LoxFunction implements LoxCallable {
         try {
             interpreter.executeBlock(declaration.body, environment);
         } catch (Return ret) {
+            if (isInitialiser) {
+                return closure.getAt(0, "this");
+            }
             return ret.value;
         }
+
+        if (isInitialiser) {
+            return closure.getAt(0, "this");
+        }
+
         return null;
     }
 

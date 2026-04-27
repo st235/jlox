@@ -83,7 +83,8 @@ public class InterpreterTest {
                 new Arguments("logical.lox", "logical.out"),
                 new Arguments("for.lox", "for.out"),
                 new Arguments("functions.lox", "functions.out"),
-                new Arguments("closures.lox", "closures.out")
+                new Arguments("closures.lox", "closures.out"),
+                new Arguments("classes.lox", "classes.out")
         );
     }
 

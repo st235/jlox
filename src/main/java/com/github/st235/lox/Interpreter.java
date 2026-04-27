@@ -157,15 +157,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitVariable(Expr.Variable node) {
-        return lookupVariable(node);
+        return lookupVariable(node.name, node);
     }
 
-    private Object lookupVariable(@NotNull Expr.Variable expression) {
+    private Object lookupVariable(@NotNull Token name, @NotNull Expr expression) {
         Integer localDepth = localsDepthLookup.get(expression);
         if (localDepth == null) {
-            return global.get(expression.name);
+            return global.get(name);
         }
-        return environment.getAt(localDepth, expression.name);
+        return environment.getAt(localDepth, name.lexeme());
     }
 
     @Override
@@ -211,6 +211,30 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
         environment.define(node.name.lexeme(), value);
         return null;
+    }
+
+    @Override
+    public Object visitSet(Expr.Set node) {
+        Object object = eval(node.object);
+
+        if (object instanceof LoxInstance) {
+            Object value = eval(node.value);
+            ((LoxInstance) object).set(node.name, value);
+            return value;
+        }
+
+        throw new RuntimeError(node.name, "Only instances have fields.");
+    }
+
+    @Override
+    public Object visitGet(Expr.Get node) {
+        Object object = eval(node.object);
+
+        if (object instanceof LoxInstance) {
+            return ((LoxInstance) object).get(node.name);
+        }
+
+        throw new RuntimeError(node.name, "Only instances have properties.");
     }
 
     @Override
@@ -279,7 +303,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitFunction(Stmt.Function node) {
-        environment.define(node.name.lexeme(), new LoxFunction(node, environment));
+        environment.define(node.name.lexeme(), new LoxFunction(node, environment, false));
         return null;
     }
 
@@ -288,6 +312,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = null;
         if (node.value != null) value = eval(node.value);
         throw new Return(value);
+    }
+
+    @Override
+    public Void visitClass(Stmt.Class node) {
+        environment.define(node.name.lexeme(), null);
+
+        Map<String, LoxFunction> methods = new HashMap<>();
+        for (Stmt.Function method: node.methods) {
+            LoxFunction function = new LoxFunction(method, environment,
+                    method.name.lexeme().equals("init"));
+            methods.put(method.name.lexeme(), function);
+        }
+
+        LoxClass klass = new LoxClass(node.name.lexeme(), methods);
+        environment.assign(node.name, klass);
+        return null;
+    }
+
+    @Override
+    public Object visitThis(Expr.This node) {
+        return lookupVariable(node.keyword, node);
     }
 
     void executeBlock(@NotNull List<Stmt> statements, @NotNull Environment currentEnvironment) {

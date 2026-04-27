@@ -1,0 +1,14 @@
+class User {
+    init(firstName, secondName) {
+        this._firstName = firstName;
+        this._secondName = secondName;
+    }
+
+    getName() {
+        return this._firstName + " " + this._secondName;
+    }
+}
+
+var user = User("John", "Doe");
+
+print user.getName();

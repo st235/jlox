@@ -159,7 +159,10 @@ public class AstGenerator {
                 "Variable : Token name",
                 "Assign: Token name, Expr expression",
                 "Logical : Expr left, Token operator, Expr right",
-                "Call : Expr callee, Token paren, List<Expr> arguments");
+                "Call : Expr callee, Token paren, List<Expr> arguments",
+                "Get : Expr object, Token name",
+                "Set : Expr object, Token name, Expr value",
+                "This : Token keyword");
 
         defineAst(args,
                 generator,
@@ -171,7 +174,8 @@ public class AstGenerator {
                 "If : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "While: Expr condition, Stmt body",
                 "Function : Token name, List<Token> params, List<Stmt> body",
-                "Return : Token keyword, Expr value");
+                "Return : Token keyword, Expr value",
+                "Class : Token name, List<Stmt.Function> methods");
 
     }
 

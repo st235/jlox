@@ -31,6 +31,7 @@ public final class Parser {
         try {
             if (match(Token.Type.VAR)) return varStatement();
             if (match(Token.Type.FUNCTION)) return funStatement("function");
+            if (match(Token.Type.CLASS)) return classStatement();
             return statement();
         } catch (RuntimeError error) {
             synchronize();
@@ -38,7 +39,20 @@ public final class Parser {
         }
     }
 
-    private Stmt funStatement(@NotNull String kind) {
+    private Stmt classStatement() {
+        Token name = consume(Token.Type.IDENTIFIER, "Expect class name.");
+        consume(Token.Type.LEFT_PARENTHESIS, "Expect '{' before class body.");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(Token.Type.RIGHT_PARENTHESIS) && !isAtEnd()) {
+            methods.add(funStatement("method"));
+        }
+        consume(Token.Type.RIGHT_PARENTHESIS, "Expect '}' after class body.");
+
+        return new Stmt.Class(name, methods);
+    }
+
+    private Stmt.Function funStatement(@NotNull String kind) {
         Token name = consume(Token.Type.IDENTIFIER, String.format("Expect %s name.", kind));
 
         consume(Token.Type.LEFT_BRACE,  String.format("Expect '(' after %s name.", kind));
@@ -195,6 +209,9 @@ public final class Parser {
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable) expr).name;
                 return new Expr.Assign(name, value);
+            } else if (expr instanceof Expr.Get) {
+                Expr.Get get = (Expr.Get) expr;
+                return new Expr.Set(get.object, get.name, value);
             }
 
             Lox.error(equals.line(), "Invalid assignment target.");
@@ -291,11 +308,14 @@ public final class Parser {
         Expr expr = primary();
 
         while (true) {
-            if (!match(Token.Type.LEFT_BRACE)) {
+            if (match(Token.Type.LEFT_BRACE)) {
+                expr = finishCall(expr);
+            } else if (match(Token.Type.DOT)) {
+              Token name = consume(Token.Type.IDENTIFIER, "Expect property name after '.'.");
+              expr = new Expr.Get(expr, name);
+            } else {
                 break;
             }
-
-            expr = finishCall(expr);
         }
 
         return expr;
@@ -338,6 +358,10 @@ public final class Parser {
             Expr expression = expression();
             consume(Token.Type.RIGHT_BRACE, "No matching )");
             return expression;
+        }
+
+        if (match(Token.Type.THIS)) {
+            return new Expr.This(previous());
         }
 
         if (match(Token.Type.IDENTIFIER)) {

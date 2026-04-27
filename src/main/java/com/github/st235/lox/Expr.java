@@ -142,6 +142,57 @@ public abstract class Expr {
 
     }
 
+    public static class Get extends Expr {
+
+        final Expr object;
+        final Token name;
+
+        Get(Expr object,  Token name) {
+            this.object = object;
+            this.name = name;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitGet(this);
+        }
+
+    }
+
+    public static class Set extends Expr {
+
+        final Expr object;
+        final Token name;
+        final Expr value;
+
+        Set(Expr object,  Token name,  Expr value) {
+            this.object = object;
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitSet(this);
+        }
+
+    }
+
+    public static class This extends Expr {
+
+        final Token keyword;
+
+        This(Token keyword) {
+            this.keyword = keyword;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitThis(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitBinary(Binary node);
         R visitGrouping(Grouping node);
@@ -151,6 +202,9 @@ public abstract class Expr {
         R visitAssign(Assign node);
         R visitLogical(Logical node);
         R visitCall(Call node);
+        R visitGet(Get node);
+        R visitSet(Set node);
+        R visitThis(This node);
     }
 
 }
