@@ -22,6 +22,11 @@ final class Environment {
         this.parent = parent;
     }
 
+    @Nullable
+    public Environment getParent() {
+        return parent;
+    }
+
     void define(@NotNull String name, @Nullable Object value) {
         lookup.put(name, value);
     }

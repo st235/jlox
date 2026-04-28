@@ -193,6 +193,23 @@ public abstract class Expr {
 
     }
 
+    public static class Super extends Expr {
+
+        final Token keyword;
+        final Token method;
+
+        Super(Token keyword,  Token method) {
+            this.keyword = keyword;
+            this.method = method;
+        }
+
+        @Override
+        <R> R visit(Visitor<R> visitor) {
+            return visitor.visitSuper(this);
+        }
+
+    }
+
     public interface Visitor<R> {
         R visitBinary(Binary node);
         R visitGrouping(Grouping node);
@@ -205,6 +222,7 @@ public abstract class Expr {
         R visitGet(Get node);
         R visitSet(Set node);
         R visitThis(This node);
+        R visitSuper(Super node);
     }
 
 }

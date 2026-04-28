@@ -318,6 +318,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitClass(Stmt.Class node) {
         environment.define(node.name.lexeme(), null);
 
+        Object superclass = null;
+        if (node.superclass != null) {
+            superclass = eval(node.superclass);
+
+            if (!(superclass instanceof LoxClass)) {
+                throw new RuntimeError(node.superclass.name, "Superclass must be class");
+            }
+
+            environment = new Environment(environment);
+            environment.define("super", superclass);
+        }
+
         Map<String, LoxFunction> methods = new HashMap<>();
         for (Stmt.Function method: node.methods) {
             LoxFunction function = new LoxFunction(method, environment,
@@ -325,7 +337,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             methods.put(method.name.lexeme(), function);
         }
 
-        LoxClass klass = new LoxClass(node.name.lexeme(), methods);
+        LoxClass klass = new LoxClass(node.name.lexeme(), (LoxClass) superclass, methods);
+
+        if (superclass != null) {
+            environment = environment.getParent();
+        }
+
         environment.assign(node.name, klass);
         return null;
     }
@@ -333,6 +350,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitThis(Expr.This node) {
         return lookupVariable(node.keyword, node);
+    }
+
+    @Override
+    public Object visitSuper(Expr.Super node) {
+        int distance = localsDepthLookup.get(node);
+        LoxClass superclass = (LoxClass) environment.getAt(distance, node.keyword.lexeme());
+        LoxInstance object = (LoxInstance) environment.getAt(distance - 1, "this");
+        LoxFunction method = superclass.findMethod(node.method.lexeme());
+
+        if (method == null) {
+            throw new RuntimeError(node.method, String.format("Undefined property '%s'.", node.method.lexeme()));
+        }
+
+        return method.bind(object);
     }
 
     void executeBlock(@NotNull List<Stmt> statements, @NotNull Environment currentEnvironment) {

@@ -19,6 +19,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private enum ClassType {
         NONE,
         CLASS,
+        SUBCLASS,
     }
 
     @NotNull
@@ -253,9 +254,21 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitClass(Stmt.Class node) {
         ClassType oldClassType = classType;
         classType = ClassType.CLASS;
+        if (node.superclass != null) classType = ClassType.SUBCLASS;
 
         declare(node.name);
         define(node.name);
+
+        if (node.superclass != null) {
+            if (node.superclass.name.lexeme().equals(node.name.lexeme())) {
+                Lox.error(node.superclass.name.line(), "A class cannot inherit from itself.");
+            }
+
+            resolve(node.superclass);
+
+            beginScope();
+            scopes.peek().put("super", true);
+        }
 
         beginScope();
         scopes.peek().put("this", true);
@@ -270,6 +283,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
         endScope();
 
+        if (node.superclass != null) {
+            endScope();
+        }
+
         classType = oldClassType;
 
         return null;
@@ -277,9 +294,21 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitThis(Expr.This node) {
-        if (classType != ClassType.CLASS) {
+        if (classType == ClassType.NONE) {
             Lox.error(node.keyword.line(), "Cannot use 'this' outside of a class.");
             return null;
+        }
+
+        resolveLocal(node, node.keyword);
+        return null;
+    }
+
+    @Override
+    public Void visitSuper(Expr.Super node) {
+        if (classType == ClassType.NONE) {
+            Lox.error(node.keyword.line(), "Can't use 'super' outside of a class.");
+        } else if (classType == ClassType.CLASS) {
+            Lox.error(node.keyword.line(), "Can't use 'super' in a class with no superclass.");
         }
 
         resolveLocal(node, node.keyword);

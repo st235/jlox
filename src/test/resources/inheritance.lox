@@ -1,0 +1,33 @@
+class Shape {
+    draw() {
+        print "Shape";
+    }
+}
+
+class Triangle < Shape {
+    draw() {
+        print "Triangle";
+    }
+}
+
+class Square < Shape {
+    draw() {
+        print "Square";
+    }
+}
+
+class Rectangle < Shape {
+    draw() {
+        print "Rectangle";
+    }
+}
+
+fun draw(shape) {
+    shape.draw();
+}
+
+var triangle = Triangle();
+var square = Square();
+
+draw(triangle);
+draw(square);

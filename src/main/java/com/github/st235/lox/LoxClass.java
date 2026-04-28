@@ -14,9 +14,14 @@ class LoxClass implements LoxCallable {
     @NotNull
     final Map<String, LoxFunction> methods;
 
+    @Nullable
+    private final LoxClass superclass;
+
     public LoxClass(@NotNull String name,
+                    @Nullable LoxClass superclass,
                     @NotNull Map<String, LoxFunction> methods) {
         this.name = name;
+        this.superclass = superclass;
         this.methods = methods;
     }
 
@@ -49,6 +54,11 @@ class LoxClass implements LoxCallable {
         if (methods.containsKey(name)) {
             return methods.get(name);
         }
+
+        if (superclass != null) {
+            return superclass.findMethod(name);
+        }
+
         return null;
     }
 }
